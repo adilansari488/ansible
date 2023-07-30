@@ -1,0 +1,45 @@
+---
+- name: Configure and Deploy Docker container with httpd server
+  hosts: all
+  become: true
+  vars:
+    docker_image_name: httpd
+    docker_image_tag: latest
+    web_content_directory: /var/www/html
+    html_code_directory: /path/to/your/local/html_code
+
+  tasks:
+    - name: Install required packages for Docker
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker
+        - python3-pip
+    
+    - name: Start and enable Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull httpd Docker image from Docker Hub
+      command: docker pull {{ docker_image_name }}:{{ docker_image_tag }}
+
+    - name: Create directory for web content
+      file:
+        path: "{{ web_content_directory }}"
+        state: directory
+
+    - name: Copy html code to web content directory
+      copy:
+        src: "{{ html_code_directory }}"
+        dest: "{{ web_content_directory }}"
+
+    - name: Run httpd container and expose it to port 80
+      command: docker run -d -p 80:80 -v {{ web_content_directory }}:/usr/local/apache2/htdocs/ {{ docker_image_name }}:{{ docker_image_tag }}
+
+    - name: Enable Docker service on system boot
+      systemd:
+        name: docker
+        enabled: yes

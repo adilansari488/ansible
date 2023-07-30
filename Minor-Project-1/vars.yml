@@ -1,0 +1,5 @@
+---
+docker_image_name: httpd
+docker_image_tag: latest
+web_content_directory: /var/www/html
+html_code_directory: /path/to/your/local/html_code
